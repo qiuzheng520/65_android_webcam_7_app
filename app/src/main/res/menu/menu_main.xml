@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <item
+        android:id="@+id/action_prev"
+        android:icon="@drawable/ic_chevron_left"
+        android:title="上一页"
+        app:showAsAction="ifRoom" />
+
+    <item
+        android:id="@+id/action_next"
+        android:icon="@drawable/ic_chevron_right"
+        android:title="下一页"
+        app:showAsAction="ifRoom" />
+
+    <item
+        android:id="@+id/action_refresh"
+        android:icon="@drawable/ic_refresh"
+        android:title="@string/action_refresh"
+        app:showAsAction="ifRoom" />
+
+    <item
+        android:id="@+id/action_clear"
+        android:icon="@drawable/ic_delete"
+        android:title="@string/action_clear_captured"
+        app:showAsAction="ifRoom" />
+
+    <item
+        android:id="@+id/action_favorite"
+        android:icon="@drawable/ic_star"
+        android:title="@string/action_favorite"
+        app:showAsAction="always" />
+</menu>

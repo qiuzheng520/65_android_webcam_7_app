@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 底部菜单在蓝色背景上的图标/文字颜色：选中白色，未选中半透明白 -->
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:color="@color/white" android:state_checked="true" />
+    <item android:color="#B3FFFFFF" />
+</selector>

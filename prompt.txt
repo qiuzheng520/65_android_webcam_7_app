@@ -1,0 +1,18 @@
+请开发原生Android应用，全部使用Java语言，禁止Kotlin、Compose，基于Android SDK。
+功能需求：
+1. App启动自动用WebView加载Bing搜索：https://www.bing.com/search?q=webcam+7
+2. WebView开启JS，允许媒体自动播放，拦截跳转，不唤起外部浏览器，支持返回按键回退页面
+3. 页面加载完成后注入JS，提取页面内mp4、m3u8等webcam视频流地址；JS通过addJavascriptInterface将链接传回Java层
+4. 提取到的视频流展示在列表，每条item包含链接、【播放】、【收藏】按钮
+5. 新增收藏功能：
+   - 点击收藏，把视频流地址保存到本地持久存储，使用SharedPreferences或者内部文件存储
+   - 收藏列表页面，展示所有已收藏流地址；支持取消收藏、删除单条收藏、一键清空收藏
+   - 收藏项点击可以直接播放视频流
+6. 播放器优先使用ExoPlayer，支持m3u8直播流；播放失败弹出Toast提示
+7. UI结构：
+- Toolbar：标题Webcam7 Bing搜索，刷新按钮 + 收藏列表入口按钮
+- 主页面：WebView + 抓取结果列表
+- 收藏页面：单独Activity展示收藏链接列表
+8. 权限：AndroidManifest添加INTERNET，适配http明文流量，兼容Android10~Android14
+9. 文件输出：MainActivity.java、FavoriteActivity.java、activity_main.xml、activity_favorite.xml、item_stream.xml、AndroidManifest.xml
+10. 代码要求：Java、注释清晰，做好异常捕获，收藏数据持久化，重启App收藏不丢失
