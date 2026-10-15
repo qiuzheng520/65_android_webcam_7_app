@@ -2,7 +2,7 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
     <string-array name="search_keywords">
         <item>webcam 7</item>
-        <item>webcamXP</item>
+        <item>webcamXP 5</item>
     </string-array>
     <color name="bg_light">#FFF5F5F5</color>
     <color name="black">#FF000000</color>

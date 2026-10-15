@@ -65,7 +65,6 @@ id tvCountry
 id tvEmpty
 id tvLoading
 id tvPreviewCountry
-id tvPreviewTag
 id tvTag
 id tvUrl
 id webView

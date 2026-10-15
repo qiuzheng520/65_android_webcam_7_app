@@ -63,7 +63,6 @@ int id tvCountry 0x0
 int id tvEmpty 0x0
 int id tvLoading 0x0
 int id tvPreviewCountry 0x0
-int id tvPreviewTag 0x0
 int id tvTag 0x0
 int id tvUrl 0x0
 int id webView 0x0

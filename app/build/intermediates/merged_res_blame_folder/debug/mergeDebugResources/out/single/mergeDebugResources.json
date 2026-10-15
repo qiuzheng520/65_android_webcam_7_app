@@ -8,10 +8,6 @@
         "source": "com.example.webcam7.app-main-36:/layout/item_stream_preview.xml"
     },
     {
-        "merged": "com.example.webcam7.app-debug-34:/drawable_bg_preview_overlay.xml.flat",
-        "source": "com.example.webcam7.app-main-36:/drawable/bg_preview_overlay.xml"
-    },
-    {
         "merged": "C:\\Users\\qzone\\.gradle\\daemon\\9.5.1\\com.example.webcam7.app-debug-34:\\drawable_ic_import.xml.flat",
         "source": "C:\\Users\\qzone\\.gradle\\daemon\\9.5.1\\com.example.webcam7.app-main-36:\\drawable\\ic_import.xml"
     },
@@ -24,6 +20,10 @@
         "source": "C:\\Users\\qzone\\.gradle\\daemon\\9.5.1\\com.example.webcam7.app-main-36:\\drawable\\ic_nav_search.xml"
     },
     {
+        "merged": "C:\\Users\\qzone\\.gradle\\daemon\\9.5.1\\com.example.webcam7.app-debug-34:\\layout_item_stream_preview.xml.flat",
+        "source": "C:\\Users\\qzone\\.gradle\\daemon\\9.5.1\\com.example.webcam7.app-main-36:\\layout\\item_stream_preview.xml"
+    },
+    {
         "merged": "C:\\Users\\qzone\\.gradle\\daemon\\9.5.1\\com.example.webcam7.app-debug-34:\\drawable_ic_chevron_right.xml.flat",
         "source": "C:\\Users\\qzone\\.gradle\\daemon\\9.5.1\\com.example.webcam7.app-main-36:\\drawable\\ic_chevron_right.xml"
     },
@@ -32,16 +32,24 @@
         "source": "C:\\Users\\qzone\\.gradle\\daemon\\9.5.1\\com.example.webcam7.app-main-36:\\drawable\\ic_delete.xml"
     },
     {
+        "merged": "C:\\Users\\qzone\\.gradle\\daemon\\9.5.1\\com.example.webcam7.app-debug-34:\\drawable_ic_view_list.xml.flat",
+        "source": "C:\\Users\\qzone\\.gradle\\daemon\\9.5.1\\com.example.webcam7.app-main-36:\\drawable\\ic_view_list.xml"
+    },
+    {
         "merged": "C:\\Users\\qzone\\.gradle\\daemon\\9.5.1\\com.example.webcam7.app-debug-34:\\drawable_ic_star.xml.flat",
         "source": "C:\\Users\\qzone\\.gradle\\daemon\\9.5.1\\com.example.webcam7.app-main-36:\\drawable\\ic_star.xml"
     },
     {
-        "merged": "C:\\Users\\qzone\\.gradle\\daemon\\9.5.1\\com.example.webcam7.app-debug-34:\\color_bottom_nav_item.xml.flat",
-        "source": "C:\\Users\\qzone\\.gradle\\daemon\\9.5.1\\com.example.webcam7.app-main-36:\\color\\bottom_nav_item.xml"
+        "merged": "C:\\Users\\qzone\\.gradle\\daemon\\9.5.1\\com.example.webcam7.app-debug-34:\\drawable_bg_preview_overlay.xml.flat",
+        "source": "C:\\Users\\qzone\\.gradle\\daemon\\9.5.1\\com.example.webcam7.app-main-36:\\drawable\\bg_preview_overlay.xml"
     },
     {
-        "merged": "com.example.webcam7.app-debug-34:/drawable_ic_view_list.xml.flat",
-        "source": "com.example.webcam7.app-main-36:/drawable/ic_view_list.xml"
+        "merged": "C:\\Users\\qzone\\.gradle\\daemon\\9.5.1\\com.example.webcam7.app-debug-34:\\drawable_ic_view_grid.xml.flat",
+        "source": "C:\\Users\\qzone\\.gradle\\daemon\\9.5.1\\com.example.webcam7.app-main-36:\\drawable\\ic_view_grid.xml"
+    },
+    {
+        "merged": "C:\\Users\\qzone\\.gradle\\daemon\\9.5.1\\com.example.webcam7.app-debug-34:\\color_bottom_nav_item.xml.flat",
+        "source": "C:\\Users\\qzone\\.gradle\\daemon\\9.5.1\\com.example.webcam7.app-main-36:\\color\\bottom_nav_item.xml"
     },
     {
         "merged": "C:\\Users\\qzone\\.gradle\\daemon\\9.5.1\\com.example.webcam7.app-debug-34:\\layout_activity_main.xml.flat",
@@ -54,10 +62,6 @@
     {
         "merged": "C:\\Users\\qzone\\.gradle\\daemon\\9.5.1\\com.example.webcam7.app-debug-34:\\drawable_ic_nav_favorite.xml.flat",
         "source": "C:\\Users\\qzone\\.gradle\\daemon\\9.5.1\\com.example.webcam7.app-main-36:\\drawable\\ic_nav_favorite.xml"
-    },
-    {
-        "merged": "com.example.webcam7.app-debug-34:/drawable_ic_view_grid.xml.flat",
-        "source": "com.example.webcam7.app-main-36:/drawable/ic_view_grid.xml"
     },
     {
         "merged": "C:\\Users\\qzone\\.gradle\\daemon\\9.5.1\\com.example.webcam7.app-debug-34:\\drawable_ic_star_border.xml.flat",
@@ -106,10 +110,6 @@
     {
         "merged": "C:\\Users\\qzone\\.gradle\\daemon\\9.5.1\\com.example.webcam7.app-debug-34:\\drawable_bg_fullscreen_btn.xml.flat",
         "source": "C:\\Users\\qzone\\.gradle\\daemon\\9.5.1\\com.example.webcam7.app-main-36:\\drawable\\bg_fullscreen_btn.xml"
-    },
-    {
-        "merged": "com.example.webcam7.app-debug-34:/menu_menu_favorite.xml.flat",
-        "source": "com.example.webcam7.app-main-36:/menu/menu_favorite.xml"
     },
     {
         "merged": "C:\\Users\\qzone\\.gradle\\daemon\\9.5.1\\com.example.webcam7.app-debug-34:\\layout_activity_favorite.xml.flat",

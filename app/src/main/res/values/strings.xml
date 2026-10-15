@@ -31,7 +31,7 @@
 
     <string-array name="search_keywords">
         <item>webcam 7</item>
-        <item>webcamXP</item>
+        <item>webcamXP 5</item>
     </string-array>
     <string name="action_clear_captured">清空抓取结果</string>
     <string name="toast_captured_cleared">已清空抓取结果</string>

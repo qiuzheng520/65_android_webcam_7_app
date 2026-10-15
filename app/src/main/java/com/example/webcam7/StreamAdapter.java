@@ -277,15 +277,12 @@ public class StreamAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
             holder.ivPlayPlaceholder.setVisibility(View.VISIBLE);
         }
 
-        // 左上角国家与标签
+        // 左上角仅显示国家（预览页不显示标签）
         boolean hasCountry = !TextUtils.isEmpty(item.country);
-        boolean hasTag = !TextUtils.isEmpty(item.tag);
-        if (hasCountry || hasTag) {
+        if (hasCountry) {
             holder.overlay.setVisibility(View.VISIBLE);
-            holder.tvCountry.setVisibility(hasCountry ? View.VISIBLE : View.GONE);
+            holder.tvCountry.setVisibility(View.VISIBLE);
             holder.tvCountry.setText(item.country);
-            holder.tvTag.setVisibility(hasTag ? View.VISIBLE : View.GONE);
-            holder.tvTag.setText(item.tag);
         } else {
             holder.overlay.setVisibility(View.GONE);
         }
@@ -334,7 +331,6 @@ public class StreamAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
         final View ivPlayPlaceholder;
         final LinearLayout overlay;
         final TextView tvCountry;
-        final TextView tvTag;
 
         PreviewViewHolder(@NonNull View itemView) {
             super(itemView);
@@ -342,7 +338,6 @@ public class StreamAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
             ivPlayPlaceholder = itemView.findViewById(R.id.ivPlayPlaceholder);
             overlay = itemView.findViewById(R.id.overlay);
             tvCountry = itemView.findViewById(R.id.tvPreviewCountry);
-            tvTag = itemView.findViewById(R.id.tvPreviewTag);
         }
     }
 }
