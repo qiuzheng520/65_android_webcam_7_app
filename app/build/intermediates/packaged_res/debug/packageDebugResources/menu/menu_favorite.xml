@@ -3,6 +3,24 @@
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <item
+        android:id="@+id/action_toggle_view"
+        android:icon="@drawable/ic_view_grid"
+        android:title="@string/action_view_preview"
+        app:showAsAction="always" />
+
+    <item
+        android:id="@+id/action_add_manual"
+        android:icon="@drawable/ic_add"
+        android:title="@string/action_add_manual"
+        app:showAsAction="ifRoom" />
+
+    <item
+        android:id="@+id/action_import_url"
+        android:icon="@drawable/ic_link"
+        android:title="@string/action_import_url"
+        app:showAsAction="never" />
+
+    <item
         android:id="@+id/action_export"
         android:icon="@drawable/ic_export"
         android:title="@string/action_export"
@@ -12,7 +30,7 @@
         android:id="@+id/action_import"
         android:icon="@drawable/ic_import"
         android:title="@string/action_import"
-        app:showAsAction="ifRoom" />
+        app:showAsAction="never" />
 
     <item
         android:id="@+id/action_clear_all"

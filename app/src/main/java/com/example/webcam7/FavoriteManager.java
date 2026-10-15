@@ -9,7 +9,11 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * 收藏数据的持久化管理类。
@@ -22,6 +26,17 @@ public final class FavoriteManager {
     private static final String TAG = "FavoriteManager";
     private static final String PREF_NAME = "webcam7_prefs";
     private static final String KEY_FAVORITES = "favorites_json";
+
+    /** 从文本中提取 http(s) 链接。 */
+    private static final Pattern URL_PATTERN =
+            Pattern.compile("(?i)https?://[^\\s\"'<>()\\[\\]]+");
+
+    /** 视为视频流/快照的扩展名。 */
+    private static final String[] STREAM_EXTENSIONS = {
+            ".m3u8", ".mp4", ".flv", ".webm", ".mov", ".mkv", ".ts", ".m4v",
+            ".avi", ".mpg", ".mpeg", ".ogv", ".3gp", ".mjpg", ".mjpeg",
+            ".jpg", ".jpeg", ".png", ".gif", ".bmp", ".webp"
+    };
 
     private FavoriteManager() {
         // 工具类，禁止实例化
@@ -217,11 +232,32 @@ public final class FavoriteManager {
      * 其余重复项跳过。兼容裸数组与带 favorites 字段的对象两种格式。
      */
     public static ImportResult importFromJson(Context context, String json) {
-        ImportResult result = new ImportResult();
         JSONArray array = parseFavoritesArray(json);
         if (array == null) {
-            return result;
+            ImportResult invalid = new ImportResult();
+            return invalid;
         }
+        return mergeArray(context, array);
+    }
+
+    /**
+     * 从任意文本导入收藏：优先按 JSON（导出格式或数组）解析，
+     * 否则按纯文本提取其中的视频流地址（含 .m3u8/.mp4/cam_N.jpg 等）。
+     */
+    public static ImportResult importFromContent(Context context, String content) {
+        if (TextUtils.isEmpty(content)) {
+            return new ImportResult();
+        }
+        JSONArray array = parseFavoritesArray(content);
+        if (array != null) {
+            return mergeArray(context, array);
+        }
+        return importFromPlainText(context, content);
+    }
+
+    /** 合并 JSON 数组中的收藏项。 */
+    private static ImportResult mergeArray(Context context, JSONArray array) {
+        ImportResult result = new ImportResult();
         result.valid = true;
         try {
             List<Favorite> list = getFavorites(context);
@@ -258,6 +294,81 @@ public final class FavoriteManager {
             result.valid = false;
         }
         return result;
+    }
+
+    /** 从纯文本中提取视频流地址并合并；优先保留流媒体/快照类地址。 */
+    private static ImportResult importFromPlainText(Context context, String text) {
+        ImportResult result = new ImportResult();
+        result.valid = true;
+        List<String> all = new ArrayList<>();
+        Matcher matcher = URL_PATTERN.matcher(text);
+        while (matcher.find()) {
+            String url = stripTrailingPunctuation(matcher.group());
+            if (!TextUtils.isEmpty(url)) {
+                all.add(url);
+            }
+        }
+        // 过滤出视频流/快照地址；若一条都没有则退化为使用全部链接
+        List<String> streamUrls = new ArrayList<>();
+        for (String url : all) {
+            if (isStreamUrl(url)) {
+                streamUrls.add(url);
+            }
+        }
+        List<String> source = streamUrls.isEmpty() ? all : streamUrls;
+
+        try {
+            List<Favorite> list = getFavorites(context);
+            Set<String> handled = new HashSet<>();
+            for (String url : source) {
+                if (!handled.add(url)) {
+                    continue;
+                }
+                if (find(list, url) == null) {
+                    list.add(new Favorite(url, ""));
+                    result.added++;
+                } else {
+                    result.skipped++;
+                }
+            }
+            if (result.added > 0) {
+                save(context, list);
+            }
+        } catch (Exception e) {
+            Log.e(TAG, "导入收藏失败", e);
+            result.valid = false;
+        }
+        return result;
+    }
+
+    /** 判断地址是否为视频流/快照（按扩展名）。 */
+    private static boolean isStreamUrl(String url) {
+        String path = url;
+        int q = path.indexOf('?');
+        if (q >= 0) {
+            path = path.substring(0, q);
+        }
+        path = path.toLowerCase();
+        for (String ext : STREAM_EXTENSIONS) {
+            if (path.endsWith(ext)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /** 去掉 URL 末尾可能附带的标点。 */
+    private static String stripTrailingPunctuation(String url) {
+        int end = url.length();
+        while (end > 0) {
+            char c = url.charAt(end - 1);
+            if (",.;:)]}\"'*".indexOf(c) >= 0) {
+                end--;
+            } else {
+                break;
+            }
+        }
+        return url.substring(0, end);
     }
 
     /** 解析导入文本为收藏数组，失败返回 null。 */

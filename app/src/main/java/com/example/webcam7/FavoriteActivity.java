@@ -7,6 +7,7 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
+import android.text.InputType;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.Menu;
@@ -14,6 +15,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.FrameLayout;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -22,6 +24,7 @@ import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -32,6 +35,8 @@ import java.io.BufferedReader;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -48,8 +53,15 @@ public class FavoriteActivity extends AppCompatActivity implements StreamAdapter
 
     private static final String TAG = "FavoriteActivity";
 
+    /** 预览模式状态保存键。 */
+    private static final String STATE_PREVIEW_MODE = "state_preview_mode";
+
     private StreamAdapter adapter;
     private TextView tvEmpty;
+    private RecyclerView recyclerView;
+
+    /** 是否处于预览（网格）模式。 */
+    private boolean previewMode;
 
     /** 导入 / 导出的系统文件选择器。 */
     private ActivityResultLauncher<String> exportLauncher;
@@ -60,6 +72,9 @@ public class FavoriteActivity extends AppCompatActivity implements StreamAdapter
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        if (savedInstanceState != null) {
+            previewMode = savedInstanceState.getBoolean(STATE_PREVIEW_MODE, false);
+        }
         applyFullscreenTop();
         setContentView(R.layout.activity_favorite);
 
@@ -135,11 +150,32 @@ public class FavoriteActivity extends AppCompatActivity implements StreamAdapter
     /** 初始化收藏列表。 */
     private void setupRecyclerView() {
         tvEmpty = findViewById(R.id.tvEmpty);
-        RecyclerView recyclerView = findViewById(R.id.recyclerFavorites);
-        recyclerView.setLayoutManager(new LinearLayoutManager(this));
+        recyclerView = findViewById(R.id.recyclerFavorites);
         adapter = new StreamAdapter(true, this);
+        adapter.setPreviewMode(previewMode);
         recyclerView.setAdapter(adapter);
+        applyLayoutManager();
         refreshList();
+    }
+
+    /** 根据当前模式设置布局管理器：列表 / 网格（每行 2 个）。 */
+    private void applyLayoutManager() {
+        if (recyclerView == null) {
+            return;
+        }
+        if (previewMode) {
+            recyclerView.setLayoutManager(new GridLayoutManager(this, 2));
+        } else {
+            recyclerView.setLayoutManager(new LinearLayoutManager(this));
+        }
+    }
+
+    /** 切换列表模式 / 预览模式。 */
+    private void toggleViewMode() {
+        previewMode = !previewMode;
+        adapter.setPreviewMode(previewMode);
+        applyLayoutManager();
+        invalidateOptionsMenu();
     }
 
     /** 从持久化存储重新加载收藏并刷新界面。 */
@@ -319,7 +355,7 @@ public class FavoriteActivity extends AppCompatActivity implements StreamAdapter
                     return;
                 }
                 FavoriteManager.ImportResult result =
-                        FavoriteManager.importFromJson(this, json);
+                        FavoriteManager.importFromContent(this, json);
                 if (!result.valid) {
                     Toast.makeText(this, R.string.toast_import_invalid, Toast.LENGTH_SHORT).show();
                     return;
@@ -346,11 +382,181 @@ public class FavoriteActivity extends AppCompatActivity implements StreamAdapter
         return sb.toString();
     }
 
+    // ================= 从网址导入 / 手动添加 =================
+
+    /** 弹窗输入网页/接口地址，下载后合并到收藏。 */
+    private void showImportUrlDialog() {
+        final EditText input = new EditText(this);
+        input.setHint(R.string.hint_import_url);
+        input.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_URI);
+
+        new AlertDialog.Builder(this)
+                .setTitle(R.string.action_import_url)
+                .setView(wrapInPaddedContainer(input))
+                .setNegativeButton(android.R.string.cancel, null)
+                .setPositiveButton(android.R.string.ok, (dialog, which) -> {
+                    String url = input.getText().toString().trim();
+                    if (TextUtils.isEmpty(url)) {
+                        return;
+                    }
+                    importFromUrl(url);
+                })
+                .show();
+    }
+
+    /** 后台下载地址内容并导入。 */
+    private void importFromUrl(final String rawUrl) {
+        String url = normalizeUrl(rawUrl);
+        if (url == null) {
+            Toast.makeText(this, R.string.toast_address_invalid, Toast.LENGTH_SHORT).show();
+            return;
+        }
+        Toast.makeText(this, R.string.toast_importing, Toast.LENGTH_SHORT).show();
+        final Context appContext = getApplicationContext();
+        ioExecutor.execute(() -> {
+            String content = null;
+            try {
+                content = downloadText(url);
+            } catch (Exception e) {
+                Log.e(TAG, "下载导入数据失败", e);
+            }
+            final String data = content;
+            mainHandler.post(() -> {
+                if (TextUtils.isEmpty(data)) {
+                    Toast.makeText(this, R.string.toast_import_failed, Toast.LENGTH_SHORT).show();
+                    return;
+                }
+                FavoriteManager.ImportResult result =
+                        FavoriteManager.importFromContent(this, data);
+                if (!result.valid) {
+                    Toast.makeText(this, R.string.toast_import_invalid, Toast.LENGTH_SHORT).show();
+                    return;
+                }
+                if (result.added == 0 && result.updated == 0 && result.skipped == 0) {
+                    Toast.makeText(this, R.string.toast_import_nothing, Toast.LENGTH_SHORT).show();
+                    return;
+                }
+                refreshList();
+                Toast.makeText(this, getString(R.string.toast_import_result,
+                        result.added, result.updated, result.skipped),
+                        Toast.LENGTH_LONG).show();
+            });
+        });
+    }
+
+    /** 弹窗手工输入视频流地址与可选标签。 */
+    private void showAddManualDialog() {
+        int pad = (int) (16 * getResources().getDisplayMetrics().density);
+
+        final EditText etUrl = new EditText(this);
+        etUrl.setHint(R.string.hint_address);
+        etUrl.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_URI);
+
+        final EditText etTag = new EditText(this);
+        etTag.setHint(R.string.hint_tag_optional);
+
+        LinearLayout container = new LinearLayout(this);
+        container.setOrientation(LinearLayout.VERTICAL);
+        container.setPadding(pad, pad / 2, pad, 0);
+        container.addView(etUrl);
+        container.addView(etTag);
+
+        new AlertDialog.Builder(this)
+                .setTitle(R.string.action_add_manual)
+                .setView(container)
+                .setNegativeButton(android.R.string.cancel, null)
+                .setPositiveButton(android.R.string.ok, (dialog, which) -> {
+                    String url = normalizeUrl(etUrl.getText().toString().trim());
+                    if (url == null) {
+                        Toast.makeText(this, R.string.toast_address_invalid, Toast.LENGTH_SHORT).show();
+                        return;
+                    }
+                    if (FavoriteManager.contains(this, url)) {
+                        Toast.makeText(this, R.string.toast_add_exist, Toast.LENGTH_SHORT).show();
+                        return;
+                    }
+                    String tag = etTag.getText().toString().trim();
+                    boolean ok = FavoriteManager.addFavorite(this, url, tag);
+                    if (ok) {
+                        refreshList();
+                        Toast.makeText(this, R.string.toast_favorite_added,
+                                Toast.LENGTH_SHORT).show();
+                    } else {
+                        Toast.makeText(this, R.string.toast_add_exist,
+                                Toast.LENGTH_SHORT).show();
+                    }
+                })
+                .show();
+    }
+
+    /** 把控件包进带内边距的容器，供对话框使用。 */
+    private FrameLayout wrapInPaddedContainer(View content) {
+        int pad = (int) (16 * getResources().getDisplayMetrics().density);
+        FrameLayout container = new FrameLayout(this);
+        container.setPadding(pad, pad / 2, pad, 0);
+        container.addView(content);
+        return container;
+    }
+
+    /** 规范化地址：缺省协议补 http://，非法返回 null。 */
+    private String normalizeUrl(String raw) {
+        if (TextUtils.isEmpty(raw)) {
+            return null;
+        }
+        String url = raw.trim();
+        if (!url.matches("(?i)^https?://.*")) {
+            url = "http://" + url;
+        }
+        Uri uri = Uri.parse(url);
+        String scheme = uri.getScheme();
+        if (uri.getHost() == null
+                || !("http".equalsIgnoreCase(scheme) || "https".equalsIgnoreCase(scheme))) {
+            return null;
+        }
+        return url;
+    }
+
+    /** 下载文本内容（UTF-8）。 */
+    private String downloadText(String url) throws Exception {
+        HttpURLConnection conn = null;
+        try {
+            conn = (HttpURLConnection) new URL(url).openConnection();
+            conn.setConnectTimeout(8000);
+            conn.setReadTimeout(8000);
+            conn.setRequestMethod("GET");
+            conn.setInstanceFollowRedirects(true);
+            conn.setRequestProperty("User-Agent", "Webcam7");
+            conn.connect();
+            if (conn.getResponseCode() != HttpURLConnection.HTTP_OK) {
+                Log.e(TAG, "下载导入数据失败: " + conn.getResponseCode());
+                return null;
+            }
+            try (InputStream in = conn.getInputStream()) {
+                return readAll(in);
+            }
+        } finally {
+            if (conn != null) {
+                conn.disconnect();
+            }
+        }
+    }
+
     // ================= 菜单 =================
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.menu_favorite, menu);
+        // 依据当前模式更新切换按钮的图标与文案
+        MenuItem toggle = menu.findItem(R.id.action_toggle_view);
+        if (toggle != null) {
+            if (previewMode) {
+                toggle.setIcon(R.drawable.ic_view_list);
+                toggle.setTitle(R.string.action_view_list);
+            } else {
+                toggle.setIcon(R.drawable.ic_view_grid);
+                toggle.setTitle(R.string.action_view_preview);
+            }
+        }
         return true;
     }
 
@@ -368,6 +574,18 @@ public class FavoriteActivity extends AppCompatActivity implements StreamAdapter
             importFavorites();
             return true;
         }
+        if (item.getItemId() == R.id.action_import_url) {
+            showImportUrlDialog();
+            return true;
+        }
+        if (item.getItemId() == R.id.action_add_manual) {
+            showAddManualDialog();
+            return true;
+        }
+        if (item.getItemId() == R.id.action_toggle_view) {
+            toggleViewMode();
+            return true;
+        }
         return super.onOptionsItemSelected(item);
     }
 
@@ -378,6 +596,12 @@ public class FavoriteActivity extends AppCompatActivity implements StreamAdapter
         if (adapter != null) {
             refreshList();
         }
+    }
+
+    @Override
+    protected void onSaveInstanceState(@NonNull Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putBoolean(STATE_PREVIEW_MODE, previewMode);
     }
 
     @Override

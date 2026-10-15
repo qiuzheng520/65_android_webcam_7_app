@@ -201,17 +201,7 @@ public class PlayerActivity extends AppCompatActivity {
 
     /** 根据扩展名判断是否为图片/快照流。 */
     private boolean isImageUrl(String url) {
-        if (url == null) {
-            return false;
-        }
-        String lower = url.toLowerCase();
-        int q = lower.indexOf('?');
-        if (q >= 0) {
-            lower = lower.substring(0, q);
-        }
-        return lower.endsWith(".jpg") || lower.endsWith(".jpeg")
-                || lower.endsWith(".png") || lower.endsWith(".gif")
-                || lower.endsWith(".bmp") || lower.endsWith(".webp");
+        return StreamUrlUtils.isImageUrl(url);
     }
 
     // ================= 视频模式（ExoPlayer） =================

@@ -8,6 +8,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.util.Log;
+import android.view.View;
 import android.webkit.JavascriptInterface;
 import android.webkit.PermissionRequest;
 import android.webkit.WebChromeClient;
@@ -16,6 +17,9 @@ import android.webkit.WebResourceRequest;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
+import android.widget.Spinner;
 import android.widget.Toast;
 
 import androidx.activity.OnBackPressedCallback;
@@ -38,14 +42,16 @@ public class MainActivity extends AppCompatActivity implements StreamAdapter.Lis
 
     private static final String TAG = "MainActivity";
 
-    /** 启动时加载的 Bing 搜索地址。 */
-    private static final String START_URL = "https://www.bing.com/search?q=webcam+7";
+    /** Bing 搜索地址前缀。 */
+    private static final String SEARCH_URL_PREFIX = "https://www.bing.com/search?q=";
 
     /** JS 桥接对象名，注入脚本通过 AndroidBridge.addStream(...) 回调 Java。 */
     private static final String JS_BRIDGE = "AndroidBridge";
 
     private WebView webView;
     private StreamAdapter adapter;
+    private Spinner keywordSpinner;
+    private String[] keywords;
 
     /**
      * 注入到网页中的脚本：
@@ -146,6 +152,7 @@ public class MainActivity extends AppCompatActivity implements StreamAdapter.Lis
         setContentView(R.layout.activity_main);
 
         setupToolbar();
+        setupKeywordSpinner();
         setupRecyclerView();
         setupWebView();
         setupBottomNav();
@@ -177,6 +184,48 @@ public class MainActivity extends AppCompatActivity implements StreamAdapter.Lis
         setSupportActionBar(toolbar);
         if (getSupportActionBar() != null) {
             getSupportActionBar().setTitle(R.string.title_main);
+        }
+    }
+
+    /** 初始化搜索关键词下拉选择（webcam 7 / webcamXP）。 */
+    private void setupKeywordSpinner() {
+        keywords = getResources().getStringArray(R.array.search_keywords);
+        keywordSpinner = findViewById(R.id.spinnerKeyword);
+        ArrayAdapter<String> spinnerAdapter = new ArrayAdapter<>(this,
+                android.R.layout.simple_spinner_item, keywords);
+        spinnerAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        keywordSpinner.setAdapter(spinnerAdapter);
+
+        // 首次初始化会触发一次选中回调，跳过以免与启动加载重复
+        final boolean[] initialSelection = {true};
+        keywordSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                if (initialSelection[0]) {
+                    initialSelection[0] = false;
+                    return;
+                }
+                if (position >= 0 && position < keywords.length) {
+                    loadSearch(keywords[position]);
+                }
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+                // 无需处理
+            }
+        });
+    }
+
+    /** 按关键词加载 Bing 搜索结果。 */
+    private void loadSearch(String keyword) {
+        if (webView == null || TextUtils.isEmpty(keyword)) {
+            return;
+        }
+        try {
+            webView.loadUrl(SEARCH_URL_PREFIX + Uri.encode(keyword));
+        } catch (Exception e) {
+            Log.e(TAG, "加载搜索页失败", e);
         }
     }
 
@@ -305,12 +354,14 @@ public class MainActivity extends AppCompatActivity implements StreamAdapter.Lis
         }
     }
 
-    /** 加载起始地址。 */
+    /** 加载当前选中关键词的搜索结果。 */
     private void loadStartUrl() {
-        try {
-            webView.loadUrl(START_URL);
-        } catch (Exception e) {
-            Log.e(TAG, "加载起始地址失败", e);
+        int position = 0;
+        if (keywordSpinner != null && keywordSpinner.getSelectedItemPosition() >= 0) {
+            position = keywordSpinner.getSelectedItemPosition();
+        }
+        if (keywords != null && position < keywords.length) {
+            loadSearch(keywords[position]);
         }
     }
 

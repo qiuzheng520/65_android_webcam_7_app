@@ -11,11 +11,28 @@
     <string name="action_clear_all">清空收藏</string>
     <string name="action_export">导出收藏</string>
     <string name="action_import">导入收藏</string>
+    <string name="action_import_url">从网址导入</string>
+    <string name="action_add_manual">手动添加收藏</string>
+    <string name="action_view_preview">切换到预览模式</string>
+    <string name="action_view_list">切换到列表模式</string>
+    <string name="label_keyword">关键词：</string>
+    <string name="hint_import_url">请输入网页/接口地址</string>
+    <string name="hint_address">请输入视频流地址（http/https）</string>
+    <string name="hint_tag_optional">标签（可选）</string>
     <string name="toast_export_success">收藏已导出</string>
     <string name="toast_export_failed">导出失败，请重试</string>
     <string name="toast_import_failed">导入失败，无法读取文件</string>
     <string name="toast_import_invalid">导入失败，文件格式不正确</string>
+    <string name="toast_import_nothing">未发现可导入的地址</string>
+    <string name="toast_importing">正在导入…</string>
     <string name="toast_import_result">导入完成：新增 %1$d 条，更新 %2$d 条，跳过 %3$d 条</string>
+    <string name="toast_address_invalid">地址无效，请输入 http(s) 开头的地址</string>
+    <string name="toast_add_exist">该链接已收藏</string>
+
+    <string-array name="search_keywords">
+        <item>webcam 7</item>
+        <item>webcamXP</item>
+    </string-array>
     <string name="action_clear_captured">清空抓取结果</string>
     <string name="toast_captured_cleared">已清空抓取结果</string>
 
