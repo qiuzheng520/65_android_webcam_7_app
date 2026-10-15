@@ -97,6 +97,10 @@ public class PlayerActivity extends AppCompatActivity {
         tvLoading = findViewById(R.id.tvLoading);
         btnFullscreen = findViewById(R.id.btnFullscreen);
 
+        // 双指缩放：视频视图放行触摸以保留播放器控制条，图片视图独占触摸
+        playerView.setOnTouchListener(new ZoomTouchListener(this, playerView, false));
+        ivSnapshot.setOnTouchListener(new ZoomTouchListener(this, ivSnapshot, true));
+
         btnFullscreen.setOnClickListener(v -> applyFullscreen(!isFullscreen));
         applyButtonInsets();
 

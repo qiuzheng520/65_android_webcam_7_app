@@ -5,7 +5,7 @@
     android:layout_height="match_parent"
     android:background="@color/black">
 
-    <!-- ExoPlayer 播放视图 -->
+    <!-- ExoPlayer 播放视图（TextureView 以支持双指缩放的画面变换） -->
     <androidx.media3.ui.PlayerView
         android:id="@+id/playerView"
         android:layout_width="match_parent"
@@ -13,6 +13,7 @@
         android:keepScreenOn="true"
         app:resize_mode="fit"
         app:show_buffering="when_playing"
+        app:surface_type="texture_view"
         app:use_controller="true" />
 
     <!-- 图片/MJPEG 快照流播放视图（网络摄像机逐帧刷新） -->
