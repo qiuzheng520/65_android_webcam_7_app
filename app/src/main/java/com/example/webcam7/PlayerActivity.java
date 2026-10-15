@@ -2,6 +2,7 @@ package com.example.webcam7;
 
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.ActivityInfo;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
@@ -11,11 +12,19 @@ import android.os.Looper;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.View;
+import android.view.ViewGroup;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.activity.OnBackPressedCallback;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.graphics.Insets;
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowCompat;
+import androidx.core.view.WindowInsetsCompat;
+import androidx.core.view.WindowInsetsControllerCompat;
 import androidx.media3.common.MediaItem;
 import androidx.media3.common.PlaybackException;
 import androidx.media3.common.Player;
@@ -46,6 +55,9 @@ public class PlayerActivity extends AppCompatActivity {
     /** 传入的视频流地址。 */
     public static final String EXTRA_URL = "extra_url";
 
+    /** 全屏状态保存键。 */
+    private static final String STATE_FULLSCREEN = "state_fullscreen";
+
     /** 快照刷新间隔（毫秒）。 */
     private static final long SNAPSHOT_INTERVAL_MS = 150L;
 
@@ -53,7 +65,12 @@ public class PlayerActivity extends AppCompatActivity {
     private PlayerView playerView;
     private ImageView ivSnapshot;
     private TextView tvLoading;
+    private ImageButton btnFullscreen;
     private boolean errorShown;
+
+    /** 全屏状态及非全屏时的屏幕方向（默认竖屏）。 */
+    private boolean isFullscreen;
+    private int normalOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT;
 
     /** 图片流相关。 */
     private String baseUrl;
@@ -72,11 +89,28 @@ public class PlayerActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        WindowCompat.setDecorFitsSystemWindows(getWindow(), false);
         setContentView(R.layout.activity_player);
 
         playerView = findViewById(R.id.playerView);
         ivSnapshot = findViewById(R.id.ivSnapshot);
         tvLoading = findViewById(R.id.tvLoading);
+        btnFullscreen = findViewById(R.id.btnFullscreen);
+
+        btnFullscreen.setOnClickListener(v -> applyFullscreen(!isFullscreen));
+        applyButtonInsets();
+
+        getOnBackPressedDispatcher().addCallback(this, new OnBackPressedCallback(true) {
+            @Override
+            public void handleOnBackPressed() {
+                if (isFullscreen) {
+                    applyFullscreen(false);
+                } else {
+                    setEnabled(false);
+                    getOnBackPressedDispatcher().onBackPressed();
+                }
+            }
+        });
 
         String url = getIntent().getStringExtra(EXTRA_URL);
         if (TextUtils.isEmpty(url)) {
@@ -92,6 +126,73 @@ public class PlayerActivity extends AppCompatActivity {
         } else {
             startPlayback(url);
         }
+
+        // 进入播放页默认竖屏非全屏；恢复时沿用上次状态。
+        boolean fullscreen = savedInstanceState != null
+                && savedInstanceState.getBoolean(STATE_FULLSCREEN, false);
+        applyFullscreen(fullscreen);
+    }
+
+    // ================= 全屏切换 =================
+
+    /** 切换全屏状态。 */
+    private void applyFullscreen(boolean fullscreen) {
+        isFullscreen = fullscreen;
+
+        // 全屏时隐藏状态栏与导航栏，滑动可临时唤出。
+        WindowInsetsControllerCompat controller =
+                WindowCompat.getInsetsController(getWindow(), getWindow().getDecorView());
+        if (controller != null) {
+            if (fullscreen) {
+                controller.hide(WindowInsetsCompat.Type.systemBars());
+                controller.setSystemBarsBehavior(
+                        WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE);
+            } else {
+                controller.show(WindowInsetsCompat.Type.systemBars());
+            }
+        }
+
+        // 全屏强制横屏，退出时恢复原方向。
+        if (fullscreen) {
+            int current = getRequestedOrientation();
+            if (current != ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE
+                    && current != ActivityInfo.SCREEN_ORIENTATION_REVERSE_LANDSCAPE
+                    && current != ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE) {
+                normalOrientation = current;
+            }
+            setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE);
+        } else {
+            setRequestedOrientation(normalOrientation);
+        }
+
+        btnFullscreen.setImageResource(
+                fullscreen ? R.drawable.ic_fullscreen_exit : R.drawable.ic_fullscreen);
+        btnFullscreen.setContentDescription(getString(
+                fullscreen ? R.string.btn_exit_fullscreen : R.string.btn_fullscreen));
+    }
+
+    /** 让全屏按钮避开状态栏/刘海/导航栏，边到边布局下始终可点。 */
+    private void applyButtonInsets() {
+        final ViewGroup.MarginLayoutParams params =
+                (ViewGroup.MarginLayoutParams) btnFullscreen.getLayoutParams();
+        final int baseTop = params.topMargin;
+        final int baseEnd = params.rightMargin;
+        ViewCompat.setOnApplyWindowInsetsListener(btnFullscreen, (v, insets) -> {
+            Insets bars = insets.getInsets(WindowInsetsCompat.Type.systemBars()
+                    | WindowInsetsCompat.Type.displayCutout());
+            ViewGroup.MarginLayoutParams lp = (ViewGroup.MarginLayoutParams) v.getLayoutParams();
+            lp.topMargin = baseTop + bars.top;
+            lp.rightMargin = baseEnd + bars.right;
+            v.setLayoutParams(lp);
+            return insets;
+        });
+        btnFullscreen.requestApplyInsets();
+    }
+
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putBoolean(STATE_FULLSCREEN, isFullscreen);
     }
 
     /** 根据扩展名判断是否为图片/快照流。 */

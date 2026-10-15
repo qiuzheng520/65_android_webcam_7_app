@@ -9,6 +9,13 @@
     <string name="action_refresh">刷新</string>
     <string name="action_favorite">收藏列表</string>
     <string name="action_clear_all">清空收藏</string>
+    <string name="action_export">导出收藏</string>
+    <string name="action_import">导入收藏</string>
+    <string name="toast_export_success">收藏已导出</string>
+    <string name="toast_export_failed">导出失败，请重试</string>
+    <string name="toast_import_failed">导入失败，无法读取文件</string>
+    <string name="toast_import_invalid">导入失败，文件格式不正确</string>
+    <string name="toast_import_result">导入完成：新增 %1$d 条，更新 %2$d 条，跳过 %3$d 条</string>
     <string name="action_clear_captured">清空抓取结果</string>
     <string name="toast_captured_cleared">已清空抓取结果</string>
 
@@ -21,6 +28,8 @@
     <string name="tag_hint">请输入标签名称</string>
     <string name="tag_saved">标签已保存</string>
     <string name="btn_play">播放</string>
+    <string name="btn_fullscreen">全屏</string>
+    <string name="btn_exit_fullscreen">退出全屏</string>
     <string name="btn_favorite">收藏</string>
     <string name="btn_unfavorite">取消收藏</string>
 

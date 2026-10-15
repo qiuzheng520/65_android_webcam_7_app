@@ -1,8 +1,13 @@
 package com.example.webcam7;
 
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
+import android.text.TextUtils;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -12,6 +17,8 @@ import android.widget.FrameLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
@@ -21,7 +28,17 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.google.android.material.appbar.MaterialToolbar;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 
+import java.io.BufferedReader;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.nio.charset.StandardCharsets;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.List;
+import java.util.Locale;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 /**
  * 收藏列表界面：展示所有已收藏的视频流地址。
@@ -34,15 +51,40 @@ public class FavoriteActivity extends AppCompatActivity implements StreamAdapter
     private StreamAdapter adapter;
     private TextView tvEmpty;
 
+    /** 导入 / 导出的系统文件选择器。 */
+    private ActivityResultLauncher<String> exportLauncher;
+    private ActivityResultLauncher<String[]> importLauncher;
+    private final ExecutorService ioExecutor = Executors.newSingleThreadExecutor();
+    private final Handler mainHandler = new Handler(Looper.getMainLooper());
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         applyFullscreenTop();
         setContentView(R.layout.activity_favorite);
 
+        registerFileLaunchers();
         setupToolbar();
         setupRecyclerView();
         setupBottomNav();
+    }
+
+    /** 注册“导出/导入”所需的系统文件选择器回调。 */
+    private void registerFileLaunchers() {
+        exportLauncher = registerForActivityResult(
+                new ActivityResultContracts.CreateDocument("application/json"),
+                uri -> {
+                    if (uri != null) {
+                        exportTo(uri);
+                    }
+                });
+        importLauncher = registerForActivityResult(
+                new ActivityResultContracts.OpenDocument(),
+                uri -> {
+                    if (uri != null) {
+                        importFrom(uri);
+                    }
+                });
     }
 
     /**
@@ -214,6 +256,96 @@ public class FavoriteActivity extends AppCompatActivity implements StreamAdapter
                 .show();
     }
 
+    // ================= 导入 / 导出 =================
+
+    /** 导出收藏：弹出系统“保存文件”选择器。 */
+    private void exportFavorites() {
+        if (FavoriteManager.getFavorites(this).isEmpty()) {
+            Toast.makeText(this, R.string.empty_favorite, Toast.LENGTH_SHORT).show();
+            return;
+        }
+        String name = "webcam7_favorites_"
+                + new SimpleDateFormat("yyyyMMdd_HHmmss", Locale.US).format(new Date())
+                + ".json";
+        exportLauncher.launch(name);
+    }
+
+    /** 导入收藏：弹出系统“打开文件”选择器。 */
+    private void importFavorites() {
+        importLauncher.launch(new String[]{
+                "application/json", "text/plain", "application/octet-stream", "*/*"});
+    }
+
+    /** 后台线程把收藏写入用户选定的文件。 */
+    private void exportTo(final Uri uri) {
+        final Context appContext = getApplicationContext();
+        ioExecutor.execute(() -> {
+            boolean ok = false;
+            try {
+                String json = FavoriteManager.exportToJson(appContext);
+                try (OutputStream os = appContext.getContentResolver().openOutputStream(uri, "wt")) {
+                    if (os != null) {
+                        os.write(json.getBytes(StandardCharsets.UTF_8));
+                        os.flush();
+                        ok = true;
+                    }
+                }
+            } catch (Exception e) {
+                Log.e(TAG, "导出收藏失败", e);
+            }
+            final boolean success = ok;
+            mainHandler.post(() -> Toast.makeText(this,
+                    success ? R.string.toast_export_success : R.string.toast_export_failed,
+                    Toast.LENGTH_SHORT).show());
+        });
+    }
+
+    /** 后台线程读取用户选定的文件并合并到收藏。 */
+    private void importFrom(final Uri uri) {
+        final Context appContext = getApplicationContext();
+        ioExecutor.execute(() -> {
+            String content = null;
+            try (InputStream in = appContext.getContentResolver().openInputStream(uri)) {
+                if (in != null) {
+                    content = readAll(in);
+                }
+            } catch (Exception e) {
+                Log.e(TAG, "读取导入文件失败", e);
+            }
+            final String json = content;
+            mainHandler.post(() -> {
+                if (TextUtils.isEmpty(json)) {
+                    Toast.makeText(this, R.string.toast_import_failed, Toast.LENGTH_SHORT).show();
+                    return;
+                }
+                FavoriteManager.ImportResult result =
+                        FavoriteManager.importFromJson(this, json);
+                if (!result.valid) {
+                    Toast.makeText(this, R.string.toast_import_invalid, Toast.LENGTH_SHORT).show();
+                    return;
+                }
+                refreshList();
+                Toast.makeText(this, getString(R.string.toast_import_result,
+                        result.added, result.updated, result.skipped),
+                        Toast.LENGTH_LONG).show();
+            });
+        });
+    }
+
+    /** 读取输入流全部文本（UTF-8）。 */
+    private String readAll(InputStream in) throws Exception {
+        StringBuilder sb = new StringBuilder();
+        try (BufferedReader reader =
+                     new BufferedReader(new InputStreamReader(in, StandardCharsets.UTF_8))) {
+            char[] buffer = new char[4096];
+            int read;
+            while ((read = reader.read(buffer)) != -1) {
+                sb.append(buffer, 0, read);
+            }
+        }
+        return sb.toString();
+    }
+
     // ================= 菜单 =================
 
     @Override
@@ -228,6 +360,14 @@ public class FavoriteActivity extends AppCompatActivity implements StreamAdapter
             confirmClearAll();
             return true;
         }
+        if (item.getItemId() == R.id.action_export) {
+            exportFavorites();
+            return true;
+        }
+        if (item.getItemId() == R.id.action_import) {
+            importFavorites();
+            return true;
+        }
         return super.onOptionsItemSelected(item);
     }
 
@@ -238,5 +378,11 @@ public class FavoriteActivity extends AppCompatActivity implements StreamAdapter
         if (adapter != null) {
             refreshList();
         }
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        ioExecutor.shutdownNow();
     }
 }
