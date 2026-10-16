@@ -17,6 +17,7 @@
     <string name="action_view_list">切换到列表模式</string>
     <string name="label_keyword">关键词：</string>
     <string name="hint_import_url">请输入网页/接口地址</string>
+    <string name="default_import_url">https://raw.githubusercontent.com/qiuzheng520/65_android_webcam_7_app/refs/heads/main/list/list.json</string>
     <string name="hint_address">请输入视频流地址（http/https）</string>
     <string name="hint_tag_optional">标签（可选）</string>
     <string name="toast_export_success">收藏已导出</string>

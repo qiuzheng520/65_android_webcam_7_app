@@ -33,6 +33,7 @@
     <string name="country_label">国家：%1$s</string>
     <string name="country_querying">国家：查询中…</string>
     <string name="country_unknown">未知</string>
+    <string name="default_import_url">https://raw.githubusercontent.com/qiuzheng520/65_android_webcam_7_app/refs/heads/main/list/list.json</string>
     <string name="empty_favorite">暂无收藏，去主页抓取视频流吧</string>
     <string name="hint_address">请输入视频流地址（http/https）</string>
     <string name="hint_import_url">请输入网页/接口地址</string>

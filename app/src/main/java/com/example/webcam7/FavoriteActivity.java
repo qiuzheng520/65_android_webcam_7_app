@@ -389,6 +389,8 @@ public class FavoriteActivity extends AppCompatActivity implements StreamAdapter
         final EditText input = new EditText(this);
         input.setHint(R.string.hint_import_url);
         input.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_URI);
+        input.setText(R.string.default_import_url);
+        input.setSelection(input.getText().length());
 
         new AlertDialog.Builder(this)
                 .setTitle(R.string.action_import_url)
