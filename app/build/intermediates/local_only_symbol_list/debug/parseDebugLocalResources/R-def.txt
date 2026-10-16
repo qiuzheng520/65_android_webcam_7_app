@@ -96,6 +96,7 @@ string count_format
 string country_label
 string country_querying
 string country_unknown
+string default_import_url
 string empty_favorite
 string hint_address
 string hint_import_url

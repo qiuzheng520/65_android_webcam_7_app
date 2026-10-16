@@ -94,6 +94,7 @@ int string count_format 0x0
 int string country_label 0x0
 int string country_querying 0x0
 int string country_unknown 0x0
+int string default_import_url 0x0
 int string empty_favorite 0x0
 int string hint_address 0x0
 int string hint_import_url 0x0
