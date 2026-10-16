@@ -188,6 +188,9 @@ public class FavoriteActivity extends AppCompatActivity implements StreamAdapter
         List<Favorite> favorites = FavoriteManager.getFavorites(this);
         adapter.setFavorites(favorites);
         tvEmpty.setVisibility(favorites.isEmpty() ? View.VISIBLE : View.GONE);
+        if (getSupportActionBar() != null) {
+            getSupportActionBar().setSubtitle(getString(R.string.count_format, favorites.size()));
+        }
         // 展示归属国家：优先用缓存，未缓存的异步查询
         for (Favorite f : favorites) {
             final String urlKey = f.url;
