@@ -123,6 +123,7 @@ string toast_favorite_exist
 string toast_favorite_removed
 string toast_import_failed
 string toast_import_invalid
+string toast_import_network
 string toast_import_nothing
 string toast_import_result
 string toast_importing

@@ -121,6 +121,7 @@ int string toast_favorite_exist 0x0
 int string toast_favorite_removed 0x0
 int string toast_import_failed 0x0
 int string toast_import_invalid 0x0
+int string toast_import_network 0x0
 int string toast_import_nothing 0x0
 int string toast_import_result 0x0
 int string toast_importing 0x0

@@ -56,6 +56,11 @@ public class FavoriteActivity extends AppCompatActivity implements StreamAdapter
     /** 预览模式状态保存键。 */
     private static final String STATE_PREVIEW_MODE = "state_preview_mode";
 
+    /** GitHub 加速镜像前缀：原始地址下载失败时依次拼接重试。 */
+    private static final String[] GITHUB_MIRRORS = {
+            "https://ghfast.top/",
+    };
+
     private StreamAdapter adapter;
     private TextView tvEmpty;
     private RecyclerView recyclerView;
@@ -418,14 +423,14 @@ public class FavoriteActivity extends AppCompatActivity implements StreamAdapter
         ioExecutor.execute(() -> {
             String content = null;
             try {
-                content = downloadText(url);
+                content = downloadTextWithFallback(url);
             } catch (Exception e) {
                 Log.e(TAG, "下载导入数据失败", e);
             }
             final String data = content;
             mainHandler.post(() -> {
-                if (TextUtils.isEmpty(data)) {
-                    Toast.makeText(this, R.string.toast_import_failed, Toast.LENGTH_SHORT).show();
+                if (data == null) {
+                    Toast.makeText(this, R.string.toast_import_network, Toast.LENGTH_LONG).show();
                     return;
                 }
                 FavoriteManager.ImportResult result =
@@ -518,16 +523,51 @@ public class FavoriteActivity extends AppCompatActivity implements StreamAdapter
         return url;
     }
 
+    /** 下载文本内容：先请求原始地址，失败后依次尝试镜像加速地址。 */
+    private String downloadTextWithFallback(String rawUrl) throws Exception {
+        Exception lastError = null;
+        try {
+            String content = downloadText(rawUrl);
+            if (!TextUtils.isEmpty(content)) {
+                return content;
+            }
+            Log.w(TAG, "原始地址下载内容为空");
+        } catch (Exception e) {
+            lastError = e;
+            Log.w(TAG, "原始地址下载失败，尝试镜像", e);
+        }
+        // GitHub 地址在部分网络下无法直连，追加镜像加速重试
+        if (!rawUrl.contains("github.com") && !rawUrl.contains("githubusercontent.com")) {
+            return null;
+        }
+        for (String mirror : GITHUB_MIRRORS) {
+            try {
+                String content = downloadText(mirror + rawUrl);
+                if (!TextUtils.isEmpty(content)) {
+                    return content;
+                }
+                Log.w(TAG, "镜像下载内容为空: " + mirror);
+            } catch (Exception e) {
+                lastError = e;
+                Log.w(TAG, "镜像下载失败: " + mirror, e);
+            }
+        }
+        if (lastError != null) {
+            throw lastError;
+        }
+        return null;
+    }
+
     /** 下载文本内容（UTF-8）。 */
     private String downloadText(String url) throws Exception {
         HttpURLConnection conn = null;
         try {
             conn = (HttpURLConnection) new URL(url).openConnection();
-            conn.setConnectTimeout(8000);
-            conn.setReadTimeout(8000);
+            conn.setConnectTimeout(10000);
+            conn.setReadTimeout(15000);
             conn.setRequestMethod("GET");
             conn.setInstanceFollowRedirects(true);
-            conn.setRequestProperty("User-Agent", "Webcam7");
+            conn.setRequestProperty("User-Agent", "Mozilla/5.0 (Linux; Android) Webcam7");
             conn.connect();
             if (conn.getResponseCode() != HttpURLConnection.HTTP_OK) {
                 Log.e(TAG, "下载导入数据失败: " + conn.getResponseCode());

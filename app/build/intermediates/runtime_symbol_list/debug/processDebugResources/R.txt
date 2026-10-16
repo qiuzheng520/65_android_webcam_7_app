@@ -4399,11 +4399,12 @@ int string toast_favorite_exist 0x7f110105
 int string toast_favorite_removed 0x7f110106
 int string toast_import_failed 0x7f110107
 int string toast_import_invalid 0x7f110108
-int string toast_import_nothing 0x7f110109
-int string toast_import_result 0x7f11010a
-int string toast_importing 0x7f11010b
-int string toast_no_stream 0x7f11010c
-int string toast_play_failed 0x7f11010d
+int string toast_import_network 0x7f110109
+int string toast_import_nothing 0x7f11010a
+int string toast_import_result 0x7f11010b
+int string toast_importing 0x7f11010c
+int string toast_no_stream 0x7f11010d
+int string toast_play_failed 0x7f11010e
 int style AlertDialog_AppCompat 0x7f120000
 int style AlertDialog_AppCompat_Light 0x7f120001
 int style Animation_AppCompat_Dialog 0x7f120002

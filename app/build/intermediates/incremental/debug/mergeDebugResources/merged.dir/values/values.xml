@@ -2476,6 +2476,7 @@
     <string name="toast_favorite_removed">已取消收藏</string>
     <string name="toast_import_failed">导入失败，无法读取文件</string>
     <string name="toast_import_invalid">导入失败，文件格式不正确</string>
+    <string name="toast_import_network">网络请求失败，已尝试镜像仍无法下载，请检查网络</string>
     <string name="toast_import_nothing">未发现可导入的地址</string>
     <string name="toast_import_result">导入完成：新增 %1$d 条，更新 %2$d 条，跳过 %3$d 条</string>
     <string name="toast_importing">正在导入…</string>

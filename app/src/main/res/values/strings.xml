@@ -23,6 +23,7 @@
     <string name="toast_export_success">收藏已导出</string>
     <string name="toast_export_failed">导出失败，请重试</string>
     <string name="toast_import_failed">导入失败，无法读取文件</string>
+    <string name="toast_import_network">网络请求失败，已尝试镜像仍无法下载，请检查网络</string>
     <string name="toast_import_invalid">导入失败，文件格式不正确</string>
     <string name="toast_import_nothing">未发现可导入的地址</string>
     <string name="toast_importing">正在导入…</string>
