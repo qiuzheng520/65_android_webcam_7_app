@@ -1,7 +1,7 @@
 {
     "logs": [
         {
-            "outputFile": "com.example.webcam7.app-mergeDebugResources-32:/values-en-rGB/values-en-rGB.xml",
+            "outputFile": "com.example.webcam7.app-mergeDebugResources-33:/values-en-rGB/values-en-rGB.xml",
             "map": [
                 {
                     "source": "C:\\Users\\qzone\\.gradle\\caches\\9.5.1\\transforms\\7cbc48b8d52356ce9e1a85951e5d4d8d\\transformed\\material-1.12.0\\res\\values-en-rGB\\values-en-rGB.xml",

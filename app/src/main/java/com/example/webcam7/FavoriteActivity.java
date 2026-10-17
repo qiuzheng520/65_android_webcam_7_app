@@ -27,6 +27,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import com.google.android.material.appbar.MaterialToolbar;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
@@ -64,6 +65,7 @@ public class FavoriteActivity extends AppCompatActivity implements StreamAdapter
     private StreamAdapter adapter;
     private TextView tvEmpty;
     private RecyclerView recyclerView;
+    private SwipeRefreshLayout swipeRefresh;
 
     /** 是否处于预览（网格）模式。 */
     private boolean previewMode;
@@ -160,7 +162,19 @@ public class FavoriteActivity extends AppCompatActivity implements StreamAdapter
         adapter.setPreviewMode(previewMode);
         recyclerView.setAdapter(adapter);
         applyLayoutManager();
+        setupSwipeRefresh();
         refreshList();
+    }
+
+    /** 顶部下拉刷新：重新加载收藏并停止刷新动画。 */
+    private void setupSwipeRefresh() {
+        swipeRefresh = findViewById(R.id.swipeRefresh);
+        swipeRefresh.setColorSchemeColors(
+                getResources().getColor(R.color.colorPrimary, getTheme()));
+        swipeRefresh.setOnRefreshListener(() -> {
+            refreshList();
+            swipeRefresh.postDelayed(() -> swipeRefresh.setRefreshing(false), 300);
+        });
     }
 
     /** 根据当前模式设置布局管理器：列表 / 网格（每行 2 个）。 */

@@ -59,6 +59,7 @@ id playerView
 id recyclerFavorites
 id recyclerStreams
 id spinnerKeyword
+id swipeRefresh
 id toolbar
 id tvCount
 id tvCountry

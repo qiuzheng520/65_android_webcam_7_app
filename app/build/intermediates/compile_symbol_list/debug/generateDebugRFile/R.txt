@@ -57,6 +57,7 @@ int id playerView 0x0
 int id recyclerFavorites 0x0
 int id recyclerStreams 0x0
 int id spinnerKeyword 0x0
+int id swipeRefresh 0x0
 int id toolbar 0x0
 int id tvCount 0x0
 int id tvCountry 0x0
